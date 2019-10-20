@@ -23,16 +23,20 @@ type overpassResponse struct {
 }
 
 type overpassResponseElement struct {
-	Type      ElementType `json:"type"`
-	ID        int64       `json:"id"`
-	Lat       float64     `json:"lat"`
-	Lon       float64     `json:"lon"`
-	Timestamp *time.Time  `json:"timestamp"`
-	Version   int64       `json:"version"`
-	Changeset int64       `json:"changeset"`
-	User      string      `json:"user"`
-	UID       int64       `json:"uid"`
-	Nodes     []int64     `json:"nodes"`
+	Type   ElementType `json:"type"`
+	ID     int64       `json:"id"`
+	Center struct {
+		Lat float64 `json:"lat"`
+		Lon float64 `json:"lon"`
+	} `json:"center"`
+	Lat       float64    `json:"lat"`
+	Lon       float64    `json:"lon"`
+	Timestamp *time.Time `json:"timestamp"`
+	Version   int64      `json:"version"`
+	Changeset int64      `json:"changeset"`
+	User      string     `json:"user"`
+	UID       int64      `json:"uid"`
+	Nodes     []int64    `json:"nodes"`
 	Members   []struct {
 		Type ElementType `json:"type"`
 		Ref  int64       `json:"ref"`
@@ -77,13 +81,19 @@ func (c *Client) Query(query string) (Result, error) {
 			node := result.getNode(el.ID)
 			*node = Node{
 				Meta: meta,
-				Lat:  el.Lat,
-				Lon:  el.Lon,
+				GeoPoint: GeoPoint{
+					Lat: el.Lat,
+					Lon: el.Lon,
+				},
 			}
 		case ElementTypeWay:
 			way := result.getWay(el.ID)
 			*way = Way{
-				Meta:  meta,
+				Meta: meta,
+				Center: &GeoPoint{
+					Lat: el.Center.Lat,
+					Lon: el.Center.Lon,
+				},
 				Nodes: make([]*Node, len(el.Nodes)),
 			}
 			for idx, nodeID := range el.Nodes {
@@ -92,7 +102,11 @@ func (c *Client) Query(query string) (Result, error) {
 		case ElementTypeRelation:
 			relation := result.getRelation(el.ID)
 			*relation = Relation{
-				Meta:    meta,
+				Meta: meta,
+				Center: &GeoPoint{
+					Lat: el.Center.Lat,
+					Lon: el.Center.Lon,
+				},
 				Members: make([]RelationMember, len(el.Members)),
 			}
 			for idx, member := range el.Members {

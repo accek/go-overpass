@@ -23,22 +23,29 @@ type Meta struct {
 	Tags      map[string]string
 }
 
+// GeoPoint represents Lat/Lon pair.
+type GeoPoint struct {
+	Lat float64
+	Lon float64
+}
+
 // Node represents OSM node type.
 type Node struct {
 	Meta
-	Lat float64
-	Lon float64
+	GeoPoint
 }
 
 // Way represents OSM way type.
 type Way struct {
 	Meta
-	Nodes []*Node
+	Center *GeoPoint
+	Nodes  []*Node
 }
 
 // Relation represents OSM relation type.
 type Relation struct {
 	Meta
+	Center  *GeoPoint
 	Members []RelationMember
 }
 
